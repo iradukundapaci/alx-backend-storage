@@ -4,6 +4,7 @@ from typing import Callable, Optional, Union
 from uuid import uuid4
 import redis
 from functools import wraps
+import aioredis
 
 """
     Writing strings to Redis.
@@ -46,7 +47,7 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
-def replay(method: Callable) -> None:
+async def replay(method: Callable) -> None:
     # sourcery skip: use-fstring-for-concatenation, use-fstring-for-formatting
     """
     Replays the history of a function
@@ -56,13 +57,13 @@ def replay(method: Callable) -> None:
         None
     """
     name = method.__qualname__
-    cache = redis.Redis()
-    calls = cache.get(name).decode("utf-8")
+    cache = aioredis.Redis()
+    calls = str(cache.get(name))
     print("{} was called {} times:".format(name, calls))
-    inputs = cache.lrange(name + ":inputs", 0, -1)
-    outputs = cache.lrange(name + ":outputs", 0, -1)
+    inputs = await cache.lrange(name + ":inputs", 0, -1)
+    outputs = await cache.lrange(name + ":outputs", 0, -1)
     for i, o in zip(inputs, outputs):
-        print("{}(*{}) -> {}".format(name, i.decode("utf-8"), o.decode("utf-8")))
+        print("{}(*{}) -> {}".format(name, str(i), str(o)))
 
 
 class Cache:
