@@ -59,11 +59,15 @@ async def replay(method: Callable) -> None:
     name = method.__qualname__
     cache = aioredis.Redis()
     calls = str(cache.get(name))
-    print("{} was called {} times:".format(name, calls))
     inputs = await cache.lrange(name + ":inputs", 0, -1)
     outputs = await cache.lrange(name + ":outputs", 0, -1)
+
+    print("{} was called {} times:".format(name, calls))
+
     for i, o in zip(inputs, outputs):
         print("{}(*{}) -> {}".format(name, str(i), str(o)))
+
+    return None
 
 
 class Cache:
