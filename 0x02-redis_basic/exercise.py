@@ -4,7 +4,6 @@ from typing import Callable, Optional, Union
 from uuid import uuid4
 import redis
 from functools import wraps
-import aioredis
 
 """
     Writing strings to Redis.
@@ -48,6 +47,7 @@ def call_history(method: Callable) -> Callable:
 
 
 def replay(method: Callable) -> None:
+    # sourcery skip: use-fstring-for-concatenation, use-fstring-for-formatting
     """
     Replays the history of a function
     Args:
